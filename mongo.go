@@ -79,9 +79,8 @@ func (db *Client) New() {
 }
 
 //选择指定数据库和集合
-func (db *Client) SwitchCollection(ctx context.Context, collection string) (*mongo.Collection, error) {
-
-	return db.Client.Database(db.DBName).Collection(collection), nil
+func (db *Client) SwitchCollection(ctx context.Context, collection string) *mongo.Collection {
+	return db.Client.Database(db.DBName).Collection(collection)
 }
 
 //查询单条数据
@@ -89,11 +88,7 @@ func (db *Client) FindOne(collectionName string, filter, result interface{}) err
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
 
-	collection, err := db.SwitchCollection(ctx, collectionName)
-	if err != nil {
-		return err
-	}
-
+	collection := db.SwitchCollection(ctx, collectionName)
 	return collection.FindOne(ctx, filter).Decode(result)
 }
 
@@ -103,14 +98,9 @@ func (db *Client) FindMany(collectionName string, filter bson.M, limit int64, sk
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
 
-	collection, err := db.SwitchCollection(ctx, collectionName)
-	if err != nil {
-		log.Println(err)
-		return resultRaw, err
-	}
+	collection := db.SwitchCollection(ctx, collectionName)
 
 	findOptions := options.Find()
-
 	findOptions.SetLimit(limit)
 	findOptions.SetSkip(skip)
 
@@ -128,11 +118,7 @@ func (db *Client) FindSlice(collectionName string, sliceName, key, value string,
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
 
-	collection, err := db.SwitchCollection(ctx, collectionName)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
+	collection := db.SwitchCollection(ctx, collectionName)
 
 	filter := bson.M{sliceName: key}
 	if value != "" {
@@ -149,10 +135,7 @@ func (db *Client) InsertOne(collectionName string, value interface{}) (*mongo.In
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
 
-	collection, err := db.SwitchCollection(ctx, collectionName)
-	if err != nil {
-		return nil, err
-	}
+	collection := db.SwitchCollection(ctx, collectionName)
 
 	return collection.InsertOne(ctx, value)
 }
@@ -163,10 +146,7 @@ func (db *Client) InsertMany(collectionName string, value []interface{}) (*mongo
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
 
-	collection, err := db.SwitchCollection(ctx, collectionName)
-	if err != nil {
-		return nil, err
-	}
+	collection := db.SwitchCollection(ctx, collectionName)
 
 	return collection.InsertMany(ctx, value)
 }
@@ -176,11 +156,7 @@ func (db *Client) UpdateOne(collectionName string, filter bson.M, updater bson.M
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
 
-	collection, err := db.SwitchCollection(ctx, collectionName)
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
+	collection := db.SwitchCollection(ctx, collectionName)
 
 	return collection.UpdateOne(ctx, filter, bson.M{upType.String(): updater})
 }
@@ -190,11 +166,7 @@ func (db *Client) FindAndUpdateSetOne(collectionName string, filter bson.M, upda
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
 
-	collection, err := db.SwitchCollection(ctx, collectionName)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
+	collection := db.SwitchCollection(ctx, collectionName)
 
 	ops := new(options.FindOneAndUpdateOptions)
 	ops.SetReturnDocument(options.After)
@@ -209,11 +181,7 @@ func (db *Client) DeleteOne(collectionName string, filter bson.M) (*mongo.Delete
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
 
-	collection, err := db.SwitchCollection(ctx, collectionName)
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
+	collection := db.SwitchCollection(ctx, collectionName)
 
 	return collection.DeleteOne(ctx, filter)
 }
@@ -223,11 +191,7 @@ func (db *Client) DeleteMany(collectionName string, filter bson.M) (*mongo.Delet
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
 
-	collection, err := db.SwitchCollection(ctx, collectionName)
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
+	collection := db.SwitchCollection(ctx, collectionName)
 
 	return collection.DeleteMany(ctx, filter)
 }
