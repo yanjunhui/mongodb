@@ -1,7 +1,5 @@
 package  mongodb
 
-
-
 import (
 	"context"
 	"fmt"
@@ -117,7 +115,7 @@ func (db *Client) FindMany(collectionName string, filter bson.M, limit int64, sk
 
 
 //查询多个文档并且排序返回
-func (db *Client) FindManyAndSort(collectionName string, filter bson.M, sort bson.M) (resultRaw []bson.Raw, err error) {
+func (db *Client) FindManyAndSort(collectionName string, filter bson.M, sort bson.D) (resultRaw []bson.Raw, err error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
