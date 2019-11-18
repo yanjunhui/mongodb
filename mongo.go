@@ -114,16 +114,21 @@ func (db *Client) FindMany(collectionName string, filter bson.M, limit int64, sk
 }
 
 
-//查询多个文档并且排序返回
-func (db *Client) FindManyAndSort(collectionName string, filter bson.M, sort bson.D) (resultRaw []bson.Raw, err error) {
+//查询多个文档并且排序返回(order的值 true: 1 从小到大; false: -1 从大到小)
+func (db *Client) FindManyAndSort(collectionName string, filter bson.M, sortKey string, order bool) (resultRaw []bson.Raw, err error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
 
 	collection := db.SwitchCollection(ctx, collectionName)
 
+	orderN := -1
+	if order {
+		orderN = 1
+	}
+
 	findOptions := options.Find()
-	findOptions.SetSort(sort)
+	findOptions.SetSort(bson.M{sortKey: orderN})
 
 	cur, err := collection.Find(ctx, filter, findOptions)
 	for cur.Next(ctx) {
@@ -132,8 +137,6 @@ func (db *Client) FindManyAndSort(collectionName string, filter bson.M, sort bso
 
 	return resultRaw, nil
 }
-
-
 
 
 
