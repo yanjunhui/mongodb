@@ -122,6 +122,26 @@ func (db *Client) Count (collectionName string, filter bson.M) (count int64, err
 	return db.SwitchCollection(ctx, collectionName).CountDocuments(ctx, filter)
 }
 
+//获取指定条件的随机一条数据
+func (db *Client) RandomOne(collectionName string, value interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
+	defer cancel()
+
+	collection := db.SwitchCollection(ctx, collectionName)
+
+	pipeline := mongo.Pipeline{{{"$sample", bson.M{"size": 1}}}}
+
+	cur, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	for cur.Next(ctx) {
+		return cur.Decode(value)
+	}
+	return nil
+}
 
 
 //查询多个文档并且排序返回(order的值 true: 1 从小到大; false: -1 从大到小)
