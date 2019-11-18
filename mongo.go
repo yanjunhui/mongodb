@@ -105,6 +105,7 @@ func (db *Client) FindMany(collectionName string, filter bson.M, limit int64, sk
 	findOptions.SetSkip(skip)
 	findOptions.SetSort(bson.M{})
 
+
 	cur, err := collection.Find(ctx, filter, findOptions)
 	for cur.Next(ctx) {
 		resultRaw = append(resultRaw, cur.Current)
@@ -112,6 +113,15 @@ func (db *Client) FindMany(collectionName string, filter bson.M, limit int64, sk
 
 	return resultRaw, nil
 }
+
+//获取指定条件文档数量
+func (db *Client) Count (collectionName string, filter bson.M) (count int64, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
+	defer cancel()
+
+	return db.SwitchCollection(ctx, collectionName).CountDocuments(ctx, filter)
+}
+
 
 
 //查询多个文档并且排序返回(order的值 true: 1 从小到大; false: -1 从大到小)
