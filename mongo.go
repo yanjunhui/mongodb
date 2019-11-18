@@ -103,6 +103,7 @@ func (db *Client) FindMany(collectionName string, filter bson.M, limit int64, sk
 	findOptions := options.Find()
 	findOptions.SetLimit(limit)
 	findOptions.SetSkip(skip)
+	findOptions.SetSort(bson.M{})
 
 	cur, err := collection.Find(ctx, filter, findOptions)
 	for cur.Next(ctx) {
@@ -111,6 +112,30 @@ func (db *Client) FindMany(collectionName string, filter bson.M, limit int64, sk
 
 	return resultRaw, nil
 }
+
+
+//查询多个文档并且排序返回
+func (db *Client) FindManyAndSort(collectionName string, filter bson.M, sort bson.M) (resultRaw []bson.Raw, err error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
+	defer cancel()
+
+	collection := db.SwitchCollection(ctx, collectionName)
+
+	findOptions := options.Find()
+	findOptions.SetSort(sort)
+
+	cur, err := collection.Find(ctx, filter, findOptions)
+	for cur.Next(ctx) {
+		resultRaw = append(resultRaw, cur.Current)
+	}
+
+	return resultRaw, nil
+}
+
+
+
+
 
 //查询内嵌 Array/Slice 结构文档
 func (db *Client) FindSlice(collectionName string, sliceName, key, value string, result interface{}) (err error) {
