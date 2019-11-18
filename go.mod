@@ -1,4 +1,4 @@
-module github.com/yanjunhui/mongodb
+module mongodb
 
 go 1.13
 
