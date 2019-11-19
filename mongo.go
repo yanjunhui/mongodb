@@ -122,6 +122,16 @@ func (db *Client) Count (collectionName string, filter bson.M) (count int64, err
 	return db.SwitchCollection(ctx, collectionName).CountDocuments(ctx, filter)
 }
 
+//获取整个集合文档数量
+func (db *Client) AllDocumentsCount (collectionName string, ) (count int64, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
+	defer cancel()
+
+	return db.SwitchCollection(ctx, collectionName).EstimatedDocumentCount(ctx)
+}
+
+
+
 //获取指定条件的随机一条数据
 func (db *Client) RandomOne(collectionName string, value interface{}) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
