@@ -230,7 +230,7 @@ func (db *Client) UpdateOne(collectionName string, filter bson.M, updater bson.M
 }
 
 //更新并且返回指定单个文档值
-func (db *Client) FindAndUpdateSetOne(collectionName string, filter bson.M, updater bson.M, result interface{}) error {
+func (db *Client) FindAndUpdateSetOne(collectionName string, filter bson.M, updater bson.M,upType UpdateType, result interface{}) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
 
@@ -239,7 +239,7 @@ func (db *Client) FindAndUpdateSetOne(collectionName string, filter bson.M, upda
 	ops := new(options.FindOneAndUpdateOptions)
 	ops.SetReturnDocument(options.After)
 
-	sResult := collection.FindOneAndUpdate(ctx, filter, bson.M{UpdateSet.String(): updater}, ops)
+	sResult := collection.FindOneAndUpdate(ctx, filter, bson.M{upType.String(): updater}, ops)
 
 	return sResult.Decode(result)
 }
@@ -263,3 +263,4 @@ func (db *Client) DeleteMany(collectionName string, filter bson.M) (*mongo.Delet
 
 	return collection.DeleteMany(ctx, filter)
 }
+
