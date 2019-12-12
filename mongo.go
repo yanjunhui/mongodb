@@ -2,6 +2,7 @@ package  mongodb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -239,9 +240,13 @@ func (db *Client) FindAndUpdateSetOne(collectionName string, filter bson.M, upda
 	ops := new(options.FindOneAndUpdateOptions)
 	ops.SetReturnDocument(options.After)
 
-	sResult := collection.FindOneAndUpdate(ctx, filter, bson.M{upType.String(): updater}, ops)
+	temp := collection.FindOne(ctx, filter)
+	if temp.Err() == nil{
+		sResult := collection.FindOneAndUpdate(ctx, filter, bson.M{upType.String(): updater}, ops)
+		return sResult.Decode(result)
+	}
 
-	return sResult.Decode(result)
+	return errors.New("update conditions not met")
 }
 
 //更新并且返回指定单个文档值(原子操作)
