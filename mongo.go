@@ -33,6 +33,9 @@ const (
 
 )
 
+
+var	UpdateError  = errors.New("update conditions not met")
+
 var updateTypes = []string{"$set", "$unset", "$rename", "$inc", "$push", "$pushAll", "$addToSet", "$pop", "$pull", "$pullAll"}
 
 func (u UpdateType) String() string {
@@ -245,7 +248,7 @@ func (db *Client) FindAndUpdateSetOne(collectionName string, filter bson.M, upda
 		return collection.FindOneAndUpdate(ctx, filter, bson.M{upType.String(): updater}, ops).Decode(result)
 	}
 
-	return errors.New("update conditions not met")
+	return UpdateError
 }
 
 //更新(同时执行set和inc)并且返回指定单个文档值(原子操作)
@@ -263,7 +266,7 @@ func (db *Client) FindAndUpdateSetInc(collectionName string, filter bson.M, upda
 		return collection.FindOneAndUpdate(ctx, filter, bson.M{UpdateSet.String(): updater, UpdateInc.String():increase}, ops).Decode(result)
 	}
 
-	return errors.New("update conditions not met")
+	return UpdateError
 }
 
 //删除指定单个文档
