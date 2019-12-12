@@ -242,14 +242,13 @@ func (db *Client) FindAndUpdateSetOne(collectionName string, filter bson.M, upda
 
 	temp := collection.FindOne(ctx, filter)
 	if temp.Err() == nil{
-		sResult := collection.FindOneAndUpdate(ctx, filter, bson.M{upType.String(): updater}, ops)
-		return sResult.Decode(result)
+		return collection.FindOneAndUpdate(ctx, filter, bson.M{upType.String(): updater}, ops).Decode(result)
 	}
 
 	return errors.New("update conditions not met")
 }
 
-//更新并且返回指定单个文档值(原子操作)
+//更新(同时执行set和inc)并且返回指定单个文档值(原子操作)
 func (db *Client) FindAndUpdateSetInc(collectionName string, filter bson.M, updater bson.M,increase bson.M, result interface{}) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
@@ -259,10 +258,12 @@ func (db *Client) FindAndUpdateSetInc(collectionName string, filter bson.M, upda
 	ops := new(options.FindOneAndUpdateOptions)
 	ops.SetReturnDocument(options.After)
 
+	temp := collection.FindOne(ctx, filter)
+	if temp.Err() == nil{
+		return collection.FindOneAndUpdate(ctx, filter, bson.M{UpdateSet.String(): updater, UpdateInc.String():increase}, ops).Decode(result)
+	}
 
-	sResult := collection.FindOneAndUpdate(ctx, filter, bson.M{UpdateSet.String(): updater, UpdateInc.String():increase}, ops)
-
-	return sResult.Decode(result)
+	return errors.New("update conditions not met")
 }
 
 //删除指定单个文档
