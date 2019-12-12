@@ -2,12 +2,14 @@
 package mongodb
 
 import (
+	"bytes"
 	"crypto/md5"
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
+	"net"
 	"os"
 	"sync/atomic"
 	"time"
@@ -41,16 +43,34 @@ func NewObjectID() primitive.ObjectID {
 func readMachineId() []byte {
 	var sum [3]byte
 	id := sum[:]
-	hostname, err1 := os.Hostname()
-	if err1 != nil {
-		_, err2 := io.ReadFull(rand.Reader, id)
-		if err2 != nil {
-			panic(fmt.Errorf("cannot get hostname: %v; %v", err1, err2))
-		}
-		return id
+
+	var sourceBuf bytes.Buffer
+
+	// Get hostname
+	hostname, err := os.Hostname()
+	if err == nil {
+		sourceBuf.WriteString(hostname)
 	}
+
+	// Get network info
+	netInterfaces, err := net.Interfaces()
+	if err == nil {
+		for _, netInterface := range netInterfaces {
+			a, err := netInterface.Addrs()
+			if err == nil {
+				for _, addr := range a {
+					if ip, ok := addr.(*net.IPNet); ok && !ip.IP.IsLoopback() {
+						sourceBuf.WriteString(ip.IP.String())
+					}
+				}
+			}
+			mac := netInterface.HardwareAddr.String()
+			sourceBuf.WriteString(mac)
+		}
+	}
+
 	hw := md5.New()
-	hw.Write([]byte(hostname))
+	hw.Write(sourceBuf.Bytes())
 	copy(id, hw.Sum(nil))
 	return id
 }
