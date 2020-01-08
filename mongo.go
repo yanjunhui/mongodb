@@ -118,6 +118,34 @@ func (db *Client) FindMany(collectionName string, filter bson.M, limit int64, sk
 	return resultRaw, nil
 }
 
+//查询多个文档并且排序返回(order的值 true: 1 从小到大; false: -1 从大到小)
+func (db *Client) FindManyAndSort(collectionName string, filter bson.M, sortKey string, order bool, limit int64, skip int64) (resultRaw []bson.Raw, err error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
+	defer cancel()
+
+	collection := db.SwitchCollection(ctx, collectionName)
+
+	orderN := -1
+	if order {
+		orderN = 1
+	}
+
+	findOptions := options.Find()
+	findOptions.SetLimit(limit)
+	findOptions.SetSkip(skip)
+	findOptions.SetSort(bson.M{sortKey: orderN})
+
+	cur, err := collection.Find(ctx, filter, findOptions)
+	for cur.Next(ctx) {
+		resultRaw = append(resultRaw, cur.Current)
+	}
+
+	return resultRaw, nil
+}
+
+
+
 //获取指定条件文档数量
 func (db *Client) Count (collectionName string, filter bson.M) (count int64, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
@@ -156,32 +184,6 @@ func (db *Client) RandomOne(collectionName string, value interface{}) error {
 	}
 	return nil
 }
-
-
-//查询多个文档并且排序返回(order的值 true: 1 从小到大; false: -1 从大到小)
-func (db *Client) FindManyAndSort(collectionName string, filter bson.M, sortKey string, order bool) (resultRaw []bson.Raw, err error) {
-
-	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
-	defer cancel()
-
-	collection := db.SwitchCollection(ctx, collectionName)
-
-	orderN := -1
-	if order {
-		orderN = 1
-	}
-
-	findOptions := options.Find()
-	findOptions.SetSort(bson.M{sortKey: orderN})
-
-	cur, err := collection.Find(ctx, filter, findOptions)
-	for cur.Next(ctx) {
-		resultRaw = append(resultRaw, cur.Current)
-	}
-
-	return resultRaw, nil
-}
-
 
 
 //查询内嵌 Array/Slice 结构文档
