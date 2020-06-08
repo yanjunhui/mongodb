@@ -290,3 +290,22 @@ func (db *Client) DeleteMany(collectionName string, filter bson.M) (*mongo.Delet
 
 	return collection.DeleteMany(ctx, filter)
 }
+
+//aggregate
+func (db *Client) Aggregate (collectionName string, pipeline []bson.M) (resultRaw []bson.Raw, err error)  {
+	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
+	defer cancel()
+
+	collection := db.SwitchCollection(ctx, collectionName)
+
+	opts := options.Aggregate()
+	cur, err := collection.Aggregate(ctx, pipeline, opts)
+	if err != nil{
+		return resultRaw, err
+	}
+	for cur.Next(ctx) {
+		resultRaw = append(resultRaw, cur.Current)
+	}
+
+	return resultRaw, nil
+}
