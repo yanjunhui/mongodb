@@ -118,6 +118,67 @@ func (db *Client) FindMany(collectionName string, filter bson.M, limit int64, sk
 	return resultRaw, nil
 }
 
+//查询多个文档投影返回指定字段
+func (db *Client) FindManyProject(collectionName string, filter bson.M, resultKeys []string, limit int64, skip int64) (resultRaw []bson.Raw, err error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
+	defer cancel()
+
+	collection := db.SwitchCollection(ctx, collectionName)
+
+	projection := bson.D{}
+	for _, v := range resultKeys{
+		projection = append(projection, bson.E{Key: v, Value: 1})
+	}
+
+	findOptions := options.Find()
+	findOptions.SetLimit(limit)
+	findOptions.SetSkip(skip)
+	findOptions.SetSort(bson.M{})
+	findOptions.SetProjection(projection)
+
+	cur, err := collection.Find(ctx, filter, findOptions)
+	for cur.Next(ctx) {
+		resultRaw = append(resultRaw, cur.Current)
+	}
+
+	return resultRaw, nil
+}
+
+//查询多个文档投影返回指定字段
+func (db *Client) FindManyProjectSort(collectionName string, filter bson.M, resultKeys []string,sortKey string, order bool, limit int64, skip int64) (resultRaw []bson.Raw, err error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
+	defer cancel()
+
+	collection := db.SwitchCollection(ctx, collectionName)
+
+	projection := bson.D{}
+	for _, v := range resultKeys{
+		projection = append(projection, bson.E{Key: v, Value: 1})
+	}
+
+	orderN := -1
+	if order {
+		orderN = 1
+	}
+
+
+	findOptions := options.Find()
+	findOptions.SetLimit(limit)
+	findOptions.SetSkip(skip)
+	findOptions.SetSort(bson.M{sortKey: orderN})
+	findOptions.SetProjection(projection)
+
+	cur, err := collection.Find(ctx, filter, findOptions)
+	for cur.Next(ctx) {
+		resultRaw = append(resultRaw, cur.Current)
+	}
+
+	return resultRaw, nil
+}
+
+
 //查询多个文档并且排序返回(order的值 true: 1 从小到大; false: -1 从大到小)
 func (db *Client) FindManyAndSort(collectionName string, filter bson.M, sortKey string, order bool, limit int64, skip int64) (resultRaw []bson.Raw, err error) {
 
@@ -289,4 +350,23 @@ func (db *Client) DeleteMany(collectionName string, filter bson.M) (*mongo.Delet
 	collection := db.SwitchCollection(ctx, collectionName)
 
 	return collection.DeleteMany(ctx, filter)
+}
+
+//aggregate
+func (db *Client) Aggregate (collectionName string, pipeline []bson.M) (resultRaw []bson.Raw, err error)  {
+	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
+	defer cancel()
+
+	collection := db.SwitchCollection(ctx, collectionName)
+
+	opts := options.Aggregate()
+	cur, err := collection.Aggregate(ctx, pipeline, opts)
+	if err != nil{
+		return resultRaw, err
+	}
+	for cur.Next(ctx) {
+		resultRaw = append(resultRaw, cur.Current)
+	}
+
+	return resultRaw, nil
 }
