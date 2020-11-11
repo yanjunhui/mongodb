@@ -56,7 +56,7 @@ type Client struct {
 
 //生成实例
 func (db *Client) New() {
-
+Retry:
 	config := new(options.ClientOptions)
 	config.ApplyURI(db.Addr)
 	config.SetMaxPoolSize(db.MaxPoolSize)
@@ -70,13 +70,15 @@ func (db *Client) New() {
 	err = c.Connect(context.Background())
 	if err != nil {
 		log.Printf("MongoDB 建立连接失败: %s", err.Error())
-		os.Exit(9)
+		time.Sleep(time.Second * 3)
+		goto Retry
 	}
 
 	err = c.Ping(context.Background(), nil)
 	if err != nil {
 		log.Printf("MongoDB 测试连接失败: %s", err.Error())
-		os.Exit(9)
+		time.Sleep(time.Second * 3)
+		goto Retry
 	}
 
 	db.Client = c
