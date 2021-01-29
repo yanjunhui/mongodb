@@ -30,7 +30,6 @@ type Count struct {
 	clock          *session.ClusterClock
 	collection     string
 	monitor        *event.CommandMonitor
-	crypt          *driver.Crypt
 	database       string
 	deployment     driver.Deployment
 	readConcern    *readconcern.ReadConcern
@@ -72,7 +71,7 @@ func NewCount() *Count {
 // Result returns the result of executing this operation.
 func (c *Count) Result() CountResult { return c.result }
 
-func (c *Count) processResponse(response bsoncore.Document, srvr driver.Server, desc description.Server, _ int) error {
+func (c *Count) processResponse(response bsoncore.Document, srvr driver.Server, desc description.Server) error {
 	var err error
 	c.result, err = buildCountResult(response, srvr)
 	return err
@@ -92,7 +91,6 @@ func (c *Count) Execute(ctx context.Context) error {
 		Client:            c.session,
 		Clock:             c.clock,
 		CommandMonitor:    c.monitor,
-		Crypt:             c.crypt,
 		Database:          c.database,
 		Deployment:        c.deployment,
 		ReadConcern:       c.readConcern,
@@ -170,16 +168,6 @@ func (c *Count) CommandMonitor(monitor *event.CommandMonitor) *Count {
 	}
 
 	c.monitor = monitor
-	return c
-}
-
-// Crypt sets the Crypt object to use for automatic encryption and decryption.
-func (c *Count) Crypt(crypt *driver.Crypt) *Count {
-	if c == nil {
-		c = new(Count)
-	}
-
-	c.crypt = crypt
 	return c
 }
 
