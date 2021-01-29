@@ -228,13 +228,16 @@ func (db *Client) AllDocumentsCount (collectionName string, ) (count int64, err 
 
 
 //获取指定条件的随机一条数据
-func (db *Client) RandomOne(collectionName string, value interface{}) error {
+func (db *Client) RandomOne(collectionName string,filter bson.M, value interface{}) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
 
 	collection := db.SwitchCollection(ctx, collectionName)
 
-	pipeline := mongo.Pipeline{{{"$sample", bson.M{"size": 1}}}}
+	pipeline := mongo.Pipeline{{
+		{"$match", filter},
+		{"$sample", bson.M{"size": 1}},
+	}}
 
 	cur, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
