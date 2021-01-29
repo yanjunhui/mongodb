@@ -234,7 +234,11 @@ func (db *Client) RandomOne(collectionName string, value interface{}) error {
 
 	collection := db.SwitchCollection(ctx, collectionName)
 
-	pipeline := mongo.Pipeline{{{"$sample", bson.M{"size": 1}}}}
+
+
+	pipeline := mongo.Pipeline{{
+		{"$sample", bson.M{"size": 1}},
+	}}
 
 	cur, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
