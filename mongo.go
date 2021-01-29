@@ -234,6 +234,8 @@ func (db *Client) RandomOne(collectionName string,filter bson.M, value interface
 
 	collection := db.SwitchCollection(ctx, collectionName)
 
+
+
 	pipeline := mongo.Pipeline{{
 		{"$match", filter},
 		{"$sample", bson.M{"size": 1}},
