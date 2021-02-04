@@ -252,6 +252,33 @@ func (db *Client) RandomOne(collectionName string, value interface{}) error {
 	return nil
 }
 
+//获取指定条件的随机一条数据
+func (db *Client) NewRandomOne(collectionName string, filter bson.E, value interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
+	defer cancel()
+
+	collection := db.SwitchCollection(ctx, collectionName)
+
+	pipeline := mongo.Pipeline{
+		{
+			filter,
+			{"$sample", bson.M{"size": 1}},
+		},
+	}
+
+	cur, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	for cur.Next(ctx) {
+		return cur.Decode(value)
+	}
+	return nil
+}
+
+
 
 //查询内嵌 Array/Slice 结构文档
 func (db *Client) FindSlice(collectionName string, sliceName, key, value string, result interface{}) (err error) {
