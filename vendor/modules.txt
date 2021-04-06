@@ -34,7 +34,11 @@ github.com/pkg/errors
 github.com/xdg/scram
 # github.com/xdg/stringprep v1.0.0
 github.com/xdg/stringprep
+<<<<<<< HEAD
 # go.mongodb.org/mongo-driver v1.4.4
+=======
+# go.mongodb.org/mongo-driver v1.4.5
+>>>>>>> 1fedba5312f3d44176110bcdd607fc58d1ca0290
 go.mongodb.org/mongo-driver/bson
 go.mongodb.org/mongo-driver/bson/bsoncodec
 go.mongodb.org/mongo-driver/bson/bsonoptions
