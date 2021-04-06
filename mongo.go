@@ -257,7 +257,7 @@ func (db *Client) NewRandomOne(collectionName string, filter bson.E, value inter
 	ctx, cancel := context.WithTimeout(context.Background(), db.ContextTimeout*time.Second)
 	defer cancel()
 
-	collection := db.SwitchCollection(ctx, collectionName)
+	collection := db.SwitchCollection(collectionName)
 
 	pipeline := mongo.Pipeline{
 		{
